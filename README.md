@@ -1,0 +1,2 @@
+# dnspod ddns for python
+
