@@ -36,15 +36,29 @@ def getdomain():
     if status['code'] == '1':
         domains = result['domains']
         for index, domain in enumerate(domains):
-            print index+1, domain['id'], domain['name']
+            print index+1, domain['id'], domain['name'], domain['status']
     else:
         print status['code'], status['message']
 
-def getrecord():
+def getrecord(domain_id):
     url = 'https://dnsapi.cn/Record.List'
-    data = {''}
-    httpclent.Post(url, )
+    data = {'domain_id': domain_id}
+    data.update(common_data)
+    code, response = httpclent.Post(url, data)
 
+    if code == 200:
+        result = json.loads(response)
+    else:
+        return '请求失败'
+
+    status = result['status']
+    if status['code'] == '1':
+        records = result['records']
+        for index, record in enumerate(records):
+            print index+1, record['id'], record['name'], record['type']
+    else:
+        print status['code'], status['message']
 
 if __name__ == '__main__':
+    # getrecord('24022514')
     getdomain()

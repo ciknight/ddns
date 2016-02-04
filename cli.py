@@ -9,8 +9,8 @@ from docopt import docopt
 
 def main():
     """Usage:
-    cli.py run <record_id>
-    cli.py getrecord <domain_id>
+    cli.py run [<record_id>]
+    cli.py getrecord [<domain_id>]
     cli.py (create|getdomain)
     cli.py [-h|-v]
 
@@ -28,7 +28,7 @@ Commands:
     arguments = docopt(main.__doc__, version="dnspod ddns 1.0")
     # print arguments
     if arguments['run']:
-        print 'run'
+        print arguments['<record_id>']
     elif arguments['getdomain']:
         from ddns import getdomain
         getdomain()
