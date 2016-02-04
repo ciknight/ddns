@@ -28,7 +28,10 @@ Commands:
     arguments = docopt(main.__doc__, version="dnspod ddns 1.0")
     # print arguments
     if arguments['run']:
-        print arguments['<record_id>']
+        from ddns import run
+        domain_id = arguments['<domain_id>']
+        record_id = arguments['<record_id>']
+        run(domain_id, record_id)
     elif arguments['getdomain']:
         from ddns import getdomain
         getdomain()
