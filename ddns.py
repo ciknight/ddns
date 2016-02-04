@@ -8,7 +8,7 @@ from HTTPClient import HttpClient
 from config import *
 import json
 
-httpclent = HttpClient()
+httpclient = HttpClient()
 
 FORMAT = 'json'
 
@@ -22,11 +22,13 @@ common_data.update(login_data)
 
 
 def getdomain():
+    """get domain list
+    """
     url = 'https://dnsapi.cn/Domain.List'
     data = {'type': 'all'}
     data.update(common_data)
 
-    code, response = httpclent.Post(url, data)
+    code, response = httpclient.Post(url, data)
     if code == 200:
         result = json.loads(response)
     else:
@@ -41,10 +43,12 @@ def getdomain():
         print status['code'], status['message']
 
 def getrecord(domain_id):
+    """get record list for domain
+    """
     url = 'https://dnsapi.cn/Record.List'
     data = {'domain_id': domain_id}
     data.update(common_data)
-    code, response = httpclent.Post(url, data)
+    code, response = httpclient.Post(url, data)
 
     if code == 200:
         result = json.loads(response)
@@ -55,10 +59,47 @@ def getrecord(domain_id):
     if status['code'] == '1':
         records = result['records']
         for index, record in enumerate(records):
-            print index+1, record['id'], record['name'], record['type']
+            print index+1, record['id'], record['name'], record['value'], record['type']
     else:
         print status['code'], status['message']
 
+
+def run(domain_id, record_id):
+    """modify record ip
+        ddns main
+    """
+    url = 'https://dnsapi.cn/Record.Modify'
+
+    data = {'domain_id': domain_id, 'redord_id': record_id,
+            'record_type': 'A', 'record_line': '默认',
+            }
+
+    data.update(common_data)
+
+    code, response = httpclient.Post(url, data)
+
+    if code == 200:
+        result = json.loads(response)
+    else:
+        return '请求失败'
+
+    status = result['status']
+    if status['code'] == '1':
+        records = result['records']
+        for index, record in enumerate(records):
+            print index+1, record['id'], record['name'], record['value'], record['type']
+    else:
+        print status['code'], status['message']
+
+
+def __get_global_ip():
+    import re
+    url = "http://www.ip.cn/"
+    code, request = httpclient.Get(url)
+    # print request
+    IP = re.findall(r"(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])", request)
+    return IP[0]
+
 if __name__ == '__main__':
-    # getrecord('24022514')
-    getdomain()
+    getrecord('24022514')
+    # getdomain()

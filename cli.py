@@ -9,7 +9,7 @@ from docopt import docopt
 
 def main():
     """Usage:
-    cli.py run [<record_id>]
+    cli.py run [<domain_id>] [<record_id>]
     cli.py getrecord [<domain_id>]
     cli.py (create|getdomain)
     cli.py [-h|-v]
@@ -35,7 +35,9 @@ Commands:
     elif arguments['create']:
         print 'create'
     elif arguments['getrecord']:
-        print 'getrecord'
+        from ddns import getrecord
+        domain_id = arguments['<domain_id>']
+        getrecord(domain_id)
     else:
         exit(main.__doc__)
 
