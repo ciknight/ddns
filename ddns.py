@@ -1,50 +1,39 @@
 # -*- coding: utf-8 -*-
-"""
-@auther: ci_knight <ci_knight@msn.cn>
-@date: 2016-02-03 19:24:33
-"""
 
-from HTTPClient import HttpClient
-from config import *
-import json
-
-httpclent = HttpClient()
-
-FORMAT = 'json'
-
-login_data = {
-    'login_email': login_email,
-    'login_password': login_password
-}
-
-common_data = {'format': FORMAT, 'lang': 'cn'}
-common_data.update(login_data)
+from vender.dnspod import DNSPod
+from util import get_real_ip
 
 
-def getdomain():
-    url = 'https://dnsapi.cn/Domain.List'
-    data = {'type': 'all'}
-    data.update(common_data)
+class DDNS(Daemon):
+    TIME_INTERVAL = 60 * 60 * 1    # one hours
 
-    code, response = httpclent.Post(url, data)
-    if code == 200:
-        result = json.loads(response)
-    else:
-        return '请求失败'
+    def __init__(self, *args, **kwargs):
+        super(DDNS, self).__init__(*args, **kwargs)
+        self.ddns = DNSPod(is_token=True)
 
-    status = result['status']
-    if status['code'] == '1':
-        domains = result['domains']
-        for index, domain in enumerate(domains):
-            print index+1, domain['id'], domain['name']
-    else:
-        print status['code'], status['message']
+    @property
+    def dnspod(self):
+        return self.ddns
 
-def getrecord():
-    url = 'https://dnsapi.cn/Record.List'
-    data = {''}
-    httpclent.Post(url, )
+    def run(self, domain_id, record_id):
+        while 1:
+            local_ip = get_real_ip()
+            if not id:
+                raise
 
+            record = self.ddns.get_single_record(domain_id, record_id)
+            record_ip = record['value']
+            if record_ip != local_ip:
+                self._run(record, domain_id, local_ip)
+            time.sleep(self.TIME_INTERVAL)
 
-if __name__ == '__main__':
-    getdomain()
+    def _run(self, record, domain_id, local_ip):
+        i = 0
+        while 1:
+            if self.ddns.update_record(domain_id, record['id'], record['sub_domain'], local_ip):
+                break
+            i += 1
+            if i >= 5:
+                break
+        return 1
+

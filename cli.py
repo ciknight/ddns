@@ -5,14 +5,16 @@
 """
 
 from docopt import docopt
+from server import server
 
 
 def main():
     """Usage:
-    cli.py run <record_id>
-    cli.py getrecord <domain_id>
-    cli.py (create|getdomain)
-    cli.py [-h|-v]
+cli.py getrecord [<domain_id>]
+cli.py run [<domain_id>] [<record_id>]
+cli.py stop
+cli.py (create|getdomain)
+cli.py [-h|-v]
 
 Options:
   -h --help     show this help message
@@ -21,24 +23,27 @@ Options:
 
 Commands:
   run           deploy ddns in current directory
+  stop          stop ddns
   getrecord     get record list in current domain
   getdomain     get all domain
   create        create a record"""
 
     arguments = docopt(main.__doc__, version="dnspod ddns 1.0")
-    # print arguments
     if arguments['run']:
-        print 'run'
+        domain_id = arguments['<domain_id>']
+        record_id = arguments['<record_id>']
+        server.start(domain_id, record_id)
+    elif arguments['stop']:
+        server.stop()
     elif arguments['getdomain']:
-        from ddns import getdomain
-        getdomain()
+        server.dnspod.get_domains()
     elif arguments['create']:
-        print 'create'
+        raise NotImplementedError
     elif arguments['getrecord']:
-        print 'getrecord'
+        domain_id = arguments['<domain_id>']
+        server.dnspod.get_records(domain_id)
     else:
         exit(main.__doc__)
-
 
 
 if __name__ == "__main__":
