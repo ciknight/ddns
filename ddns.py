@@ -12,7 +12,7 @@ import time
 httpclient = HttpClient()
 
 FORMAT = 'json'
-SLEEP_TIME = 60*60*12
+TIME_INTERVAL = 60*60*12
 
 login_data = {
     'login_email': login_email,
@@ -86,8 +86,14 @@ def get_person_record(domain_id, record_id):
         return None
 
 
-
 def run(domain_id, record_id):
+
+    while True:
+        __run(domain_id, record_id)
+        time.sleep(TIME_INTERVAL)
+
+
+def __run(domain_id, record_id):
     """modify record ip
         ddns main
     """

@@ -5,7 +5,8 @@
 """
 
 from docopt import docopt
-
+import multiprocessing
+import os
 
 def main():
     """Usage:
@@ -31,7 +32,15 @@ Commands:
         from ddns import run
         domain_id = arguments['<domain_id>']
         record_id = arguments['<record_id>']
-        run(domain_id, record_id)
+        P = multiprocessing.Process(target=run, args=(domain_id, record_id))
+        P.daemon = False
+        P.start()
+
+        os.umask(022)
+
+        with open('/tmp/dnspod_dns.pid', 'wr') as f:
+            f.write(str(P.pid))
+
     elif arguments['getdomain']:
         from ddns import getdomain
         getdomain()
