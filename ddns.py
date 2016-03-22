@@ -4,10 +4,11 @@
 @date: 2016-02-03 19:24:33
 """
 
-from HTTPClient import HttpClient
-from config import *
 import json
 import time
+
+from config import *
+from HTTPClient import HttpClient
 
 httpclient = HttpClient()
 
@@ -65,7 +66,6 @@ def getrecord(domain_id):
     else:
         print status['code'], status['message']
 
-
 def get_person_record(domain_id, record_id):
     url = 'https://dnsapi.cn/Record.Info'
     data = {'domain_id': domain_id, 'record_id': record_id}
@@ -85,13 +85,11 @@ def get_person_record(domain_id, record_id):
         print status['code'], status['message']
         return None
 
-
 def run(domain_id, record_id):
 
     while True:
         __run(domain_id, record_id)
         time.sleep(TIME_INTERVAL)
-
 
 def __run(domain_id, record_id):
     """modify record ip
@@ -128,7 +126,6 @@ def __run(domain_id, record_id):
         print '修改成功'
     else:
         print status['code'], status['message']
-
 
 def __get_global_ip():
     import re
