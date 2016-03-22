@@ -1,11 +1,15 @@
 # dnspod ddns for python
 
-使用dnspod api 开发的python版 ddns  
+Usage DNSPod api complete python DDNS
 
-### 配置config
+### Config
 
-写入dnspod用户名和密码  
-python cli.py -h  
+mv dist_config.py condif.py
+
+write your DNSPod user_name and password
+
+### Run
+python cli.py -h
 
 ### TODO LIST
 
