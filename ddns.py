@@ -5,6 +5,7 @@
 """
 
 import json
+import multiprocessing
 import time
 
 from config import *
@@ -13,7 +14,7 @@ from HTTPClient import HttpClient
 httpclient = HttpClient()
 
 FORMAT = 'json'
-TIME_INTERVAL = 60*60*12
+TIME_INTERVAL = 60*60*6
 
 login_data = {
     'login_email': login_email,
@@ -23,6 +24,16 @@ login_data = {
 common_data = {'format': FORMAT, 'lang': 'cn'}
 common_data.update(login_data)
 
+__all__ = ['run_server', 'getdomain', 'getrecord']
+
+
+def POST_API(url, data):
+    code, response = httpclient.Post(url, data)
+    if code == 200:
+        return json.loads(response)
+    else:
+        raise Exception, '请求失败'
+
 
 def getdomain():
     """get domain list
@@ -30,13 +41,7 @@ def getdomain():
     url = 'https://dnsapi.cn/Domain.List'
     data = {'type': 'all'}
     data.update(common_data)
-
-    code, response = httpclient.Post(url, data)
-    if code == 200:
-        result = json.loads(response)
-    else:
-        return '请求失败'
-
+    result = POST_API(url, data)
     status = result['status']
     if status['code'] == '1':
         domains = result['domains']
@@ -51,13 +56,7 @@ def getrecord(domain_id):
     url = 'https://dnsapi.cn/Record.List'
     data = {'domain_id': domain_id}
     data.update(common_data)
-    code, response = httpclient.Post(url, data)
-
-    if code == 200:
-        result = json.loads(response)
-    else:
-        return '请求失败'
-
+    result = POST_API(url, data)
     status = result['status']
     if status['code'] == '1':
         records = result['records']
@@ -70,13 +69,7 @@ def get_person_record(domain_id, record_id):
     url = 'https://dnsapi.cn/Record.Info'
     data = {'domain_id': domain_id, 'record_id': record_id}
     data.update(common_data)
-    code, response = httpclient.Post(url, data)
-
-    if code == 200:
-        result = json.loads(response)
-    else:
-        return '请求失败'
-
+    result = POST_API(url, data)
     status = result['status']
     if status['code'] == '1':
         record = result['record']
@@ -85,7 +78,15 @@ def get_person_record(domain_id, record_id):
         print status['code'], status['message']
         return None
 
-def run(domain_id, record_id):
+def run_server(domain_id, record_id):
+    p = multiprocessing.Process(target=_run, args=(domain_id, record_id))
+    p.daemon = True
+    p.start()
+    with open('/tmp/dnspod_dns.pid', 'wr') as f:
+        f.write(str(p.pid))
+
+
+def _run(domain_id, record_id):
 
     while True:
         __run(domain_id, record_id)
@@ -113,14 +114,7 @@ def __run(domain_id, record_id):
             }
 
     data.update(common_data)
-
-    code, response = httpclient.Post(url, data)
-
-    if code == 200:
-        result = json.loads(response)
-    else:
-        return '请求失败'
-
+    result = POST_API(url, data)
     status = result['status']
     if status['code'] == '1':
         print '修改成功'
@@ -140,4 +134,3 @@ def __get_global_ip():
 if __name__ == '__main__':
     getrecord('24022514')
     print get_person_record('24022514', '113270166')
-    # getdomain()

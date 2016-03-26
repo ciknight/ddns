@@ -5,8 +5,12 @@
 """
 
 from docopt import docopt
-import multiprocessing
 import os
+
+from ddns import *
+
+os.umask(022)
+
 
 def main():
     """Usage:
@@ -29,25 +33,14 @@ Commands:
     arguments = docopt(main.__doc__, version="dnspod ddns 1.0")
     # print arguments
     if arguments['run']:
-        from ddns import run
         domain_id = arguments['<domain_id>']
         record_id = arguments['<record_id>']
-        P = multiprocessing.Process(target=run, args=(domain_id, record_id))
-        P.daemon = False
-        P.start()
-
-        os.umask(022)
-
-        with open('/tmp/dnspod_dns.pid', 'wr') as f:
-            f.write(str(P.pid))
-
+        run_server(domain_id, record_id)
     elif arguments['getdomain']:
-        from ddns import getdomain
         getdomain()
     elif arguments['create']:
         print 'create'
     elif arguments['getrecord']:
-        from ddns import getrecord
         domain_id = arguments['<domain_id>']
         getrecord(domain_id)
     else:
