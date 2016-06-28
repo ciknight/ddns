@@ -1,16 +1,7 @@
 # dnspod ddns for python
 
-Usage DNSPod api complete python DDNS
+Usage DNSPod api complete DDNS
 
-### Config
+# Update
 
-mv dist_config.py condif.py
-
-write your DNSPod user_name and password
-
-### Run
-python cli.py -h
-
-### TODO LIST
-
-- create record
+- 2016-03-04 参数更换为 login_token

@@ -4,39 +4,37 @@
 @date: 2016-02-03 19:24:33
 """
 
-import json
-import multiprocessing
+import requests
 import time
+import ujson as json
 
-from config import *
-from HTTPClient import HttpClient
+from config import Config
 
-httpclient = HttpClient()
 
 FORMAT = 'json'
-TIME_INTERVAL = 60*60*6
+TIME_INTERVAL = 60 * 60 * 6
 
-login_data = {
-    'login_email': login_email,
-    'login_password': login_password
-}
 
 common_data = {'format': FORMAT, 'lang': 'cn'}
 common_data.update(login_data)
 
-__all__ = ['run_server', 'getdomain', 'getrecord']
+__all__ = ['run_server', 'get_domains', 'getrecord']
 
 
-def POST_API(url, data):
-    code, response = httpclient.Post(url, data)
-    if code == 200:
-        return json.loads(response)
-    else:
-        raise Exception, '请求失败'
+def POST(url, data):
+    response = requests.post(url, data)
+    if response.status_code != 200:
+        raise 'request error_code: %s' % response.status_code
 
+    response = response.json()
+    if response['status']['code'] != '1':
+        raise response['status']['message']
 
-def getdomain():
-    """get domain list
+    return response
+
+def get_domains():
+    """
+    get domain list
     """
     url = 'https://dnsapi.cn/Domain.List'
     data = {'type': 'all'}
@@ -79,20 +77,11 @@ def get_person_record(domain_id, record_id):
         return None
 
 def run_server(domain_id, record_id):
-    p = multiprocessing.Process(target=_run, args=(domain_id, record_id))
-    p.daemon = True
-    p.start()
-    with open('/tmp/dnspod_dns.pid', 'wr') as f:
-        f.write(str(p.pid))
-
-
-def _run(domain_id, record_id):
-
     while True:
         __run(domain_id, record_id)
         time.sleep(TIME_INTERVAL)
 
-def __run(domain_id, record_id):
+def _run(domain_id, record_id):
     """modify record ip
         ddns main
     """
