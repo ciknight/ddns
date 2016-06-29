@@ -4,9 +4,7 @@
 import logging
 import sys
 from datetime import datetime
-from logging import Formatter
-from logging import getLogger
-from logging import StreamHandler
+from logging import Formatter, StreamHandler, getLogger
 
 # add level 'success'
 logging.SUCCESS = 25  # 25 is between WARNING(30) and INFO(20)
@@ -70,23 +68,15 @@ class ColoredFormatter(Formatter):
         time = colored(datetime.now().strftime("(%H:%M:%S)"), "magenta")
         return " ".join([level, time, message])
 
+
 # add colored handler
 handler = StreamHandler(sys.stdout)  # thread.lock
 formatter = ColoredFormatter()
 handler.setFormatter(formatter)
 
-logger = getLogger('tools')
+logger = getLogger('ddns')
 # stackoverflow told me to use method `_log`,  but the `log` is better
 # because, `log` check its level's enablity
 logger.success = lambda msg, *args, **kwargs: logger.log(logging.SUCCESS, msg, *args, **kwargs)
 logger.addHandler(handler)
-
-
-if __name__ == "__main__":
-    logger.setLevel(logging.DEBUG)
-    logger.info('info')
-    logger.success('success')
-    logger.debug('debug')
-    logger.warning('warning')
-    logger.error('error')
-    logger.critical('critical')
+logger.setLevel(logging.DEBUG)
