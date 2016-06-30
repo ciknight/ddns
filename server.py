@@ -3,7 +3,6 @@
 import time
 
 from daemon import DDNS
-from util import get_real_ip
 
 __all__ = ['server']
 
@@ -15,6 +14,10 @@ class Server(object):
     def __init__(self, *args, **kwargs):
         super(Server, self).__init__(*args, **kwargs)
         self.ddns = DDNS(self.PIDFILE, home_dir=self.HOME_DIR)
+
+    @property
+    def dnspod(self):
+        return self.ddns.dnspod
 
     def run(self, domain_id, record_id):
         self.ddns.run(domain_id, record_id)

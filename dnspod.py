@@ -69,7 +69,7 @@ class DNSPod(object):
         data = {'domain_id': domain_id}
         response = self.POST(url, data)
         for index, record in enumerate(response['records']):
-            pprint('%d %5s %5s %5s %5s' % (index+1, record['id'], record['name'], record['value']), record['type'])
+            pprint('%d %5s %5s %5s %5s' % (index+1, record['id'], record['name'], record['value'], record['type']))
 
     def get_single_record(self, domain_id, record_id):
         """

@@ -5,17 +5,13 @@
 """
 
 from docopt import docopt
-import os
-
-from ddns import *
-
-os.umask(022)
+from server import server
 
 
 def main():
     """Usage:
-    cli.py run [<domain_id>] [<record_id>]
     cli.py getrecord [<domain_id>]
+    cli.py run [<domain_id>] [<record_id>]
     cli.py (create|getdomain)
     cli.py [-h|-v]
 
@@ -31,18 +27,17 @@ Commands:
   create        create a record"""
 
     arguments = docopt(main.__doc__, version="dnspod ddns 1.0")
-    # print arguments
     if arguments['run']:
         domain_id = arguments['<domain_id>']
         record_id = arguments['<record_id>']
-        run_server(domain_id, record_id)
+        server.run(domain_id, record_id)
     elif arguments['getdomain']:
-        getdomain()
+        server.dnspod.get_domains()
     elif arguments['create']:
-        print 'create'
+        raise NotImplementedError
     elif arguments['getrecord']:
         domain_id = arguments['<domain_id>']
-        getrecord(domain_id)
+        server.dnspod.get_records(domain_id)
     else:
         exit(main.__doc__)
 

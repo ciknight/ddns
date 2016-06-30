@@ -27,6 +27,7 @@ import logging
 
 from dnspod import DNSPod
 from logger import logger
+from util import get_real_ip
 
 
 class Daemon(object):
@@ -201,7 +202,11 @@ class DDNS(Daemon):
 
     def __init__(self, *args, **kwargs):
         super(DDNS, self).__init__(*args, **kwargs)
-        self.ddns = DNSPod()
+        self.ddns = DNSPod(is_token=True)
+
+    @property
+    def dnspod(self):
+        return self.ddns
 
     def run(self, domain_id, record_id):
         while 1:
@@ -212,13 +217,13 @@ class DDNS(Daemon):
             record = self.ddns.get_single_record(domain_id, record_id)
             record_ip = record['value']
             if record_ip != local_ip:
-                self._run(record, local_ip)
+                self._run(record, domain_id, local_ip)
             time.sleep(self.TIME_INTERVAL)
 
-    def _run(record, local_ip):
+    def _run(self, record, domain_id, local_ip):
         i = 0
         while 1:
-            if self.update_record(domain_id, record_id, record['sub_type'], ip):
+            if self.ddns.update_record(domain_id, record['id'], record['sub_domain'], local_ip):
                 break
             i += 1
             if i >= 5:
