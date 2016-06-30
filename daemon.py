@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 '''
     ***
     Modified generic daemon class
@@ -27,7 +25,8 @@ import os, sys, signal
 import time
 import logging
 
-from .logger import logger
+from dnspod import DNSPod
+from logger import logger
 
 
 class Daemon(object):
@@ -195,3 +194,33 @@ class Daemon(object):
         You should override this method when you subclass Daemon. It will be called after the process has been
         daemonized by start() or restart().
         """
+
+
+class DDNS(Daemon):
+    TIME_INTERVAL = 60 * 60 * 1  # one hours
+
+    def __init__(self, *args, **kwargs):
+        super(DDNS, self).__init__(*args, **kwargs)
+        self.ddns = DNSPod()
+
+    def run(self, domain_id, record_id):
+        while 1:
+            local_ip = get_real_ip()
+            if not id:
+                raise
+
+            record = self.ddns.get_single_record(domain_id, record_id)
+            record_ip = record['value']
+            if record_ip != local_ip:
+                self._run(record, local_ip)
+            time.sleep(self.TIME_INTERVAL)
+
+    def _run(record, local_ip):
+        i = 0
+        while 1:
+            if self.update_record(domain_id, record_id, record['sub_type'], ip):
+                break
+            i += 1
+            if i >= 5:
+                break
+        return 1

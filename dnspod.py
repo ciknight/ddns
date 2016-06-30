@@ -61,7 +61,7 @@ class DNSPod(object):
         for index, domain in enumerate(response['domains']):
             pprint('%d %5s %5s %5s' % (index+1, domain['id'], domain['name'], domain['status']))
 
-    def getrecords(self, domain_id):
+    def get_records(self, domain_id):
         """
         get record list for domain
         """
@@ -71,8 +71,29 @@ class DNSPod(object):
         for index, record in enumerate(response['records']):
             pprint('%d %5s %5s %5s %5s' % (index+1, record['id'], record['name'], record['value']), record['type'])
 
-    def get_person_record(self, domain_id, record_id):
+    def get_single_record(self, domain_id, record_id):
+        """
+        get a record
+        """
         url = 'https://dnsapi.cn/Record.Info'
         data = {'domain_id': domain_id, 'record_id': record_id}
         response = self.POST(url, data)
-        return response['record']['value']
+        return response['record']
+
+    def update_record(self, domain_id, record_id, sub_domain,  ip, record_type='A'):
+        """
+        update record
+        update 5 pre hours is too much
+        """
+        url = 'https://dnsapi.cn/Record.Modify'
+        data = {'domain_id': domain_id,
+                'record_id': record_id,
+                'record_type': record_type,
+                'value': ip,
+                'sub_domain': sub_domain,
+                'record_line': '默认'}
+        try:
+            assert self.POST(url, data)
+        except Exception, e:
+            return None
+        return 1
