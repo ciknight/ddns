@@ -8,19 +8,18 @@ __all__ = ['server']
 
 
 class Server(object):
-    PIDFILE = 'ddns.pid'
-    HOME_DIR = '/tmp'
+    PIDFILE = '/tmp/ddns.pid'
 
     def __init__(self, *args, **kwargs):
         super(Server, self).__init__(*args, **kwargs)
-        self.ddns = DDNS(self.PIDFILE, home_dir=self.HOME_DIR)
+        self.ddns = DDNS(self.PIDFILE)
 
     @property
     def dnspod(self):
         return self.ddns.dnspod
 
-    def run(self, domain_id, record_id):
-        self.ddns.run(domain_id, record_id)
+    def start(self, domain_id, record_id):
+        self.ddns.start(domain_id, record_id)
 
     def stop(self):
         self.ddns.stop()
