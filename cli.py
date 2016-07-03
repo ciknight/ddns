@@ -12,6 +12,7 @@ def main():
     """Usage:
     cli.py getrecord [<domain_id>]
     cli.py run [<domain_id>] [<record_id>]
+    cli.py stop
     cli.py (create|getdomain)
     cli.py [-h|-v]
 
@@ -22,6 +23,7 @@ Options:
 
 Commands:
   run           deploy ddns in current directory
+  stop          stop ddns
   getrecord     get record list in current domain
   getdomain     get all domain
   create        create a record"""
@@ -30,7 +32,9 @@ Commands:
     if arguments['run']:
         domain_id = arguments['<domain_id>']
         record_id = arguments['<record_id>']
-        server.run(domain_id, record_id)
+        server.start(domain_id, record_id)
+    elif arguments['stop']:
+        server.stop()
     elif arguments['getdomain']:
         server.dnspod.get_domains()
     elif arguments['create']:
