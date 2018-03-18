@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import time
-
-from daemon import DDNS
+from util.daemon import DDNS
 
 __all__ = ['server']
 
@@ -29,5 +27,6 @@ class Server(object):
 
     def status(self):
         self.ddns.status()
+
 
 server = Server()

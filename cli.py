@@ -10,11 +10,11 @@ from server import server
 
 def main():
     """Usage:
-    cli.py getrecord [<domain_id>]
-    cli.py run [<domain_id>] [<record_id>]
-    cli.py stop
-    cli.py (create|getdomain)
-    cli.py [-h|-v]
+cli.py getrecord [<domain_id>]
+cli.py run [<domain_id>] [<record_id>]
+cli.py stop
+cli.py (create|getdomain)
+cli.py [-h|-v]
 
 Options:
   -h --help     show this help message
@@ -44,7 +44,6 @@ Commands:
         server.dnspod.get_records(domain_id)
     else:
         exit(main.__doc__)
-
 
 
 if __name__ == "__main__":

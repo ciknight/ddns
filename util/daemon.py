@@ -21,12 +21,13 @@
 '''
 
 import atexit
-import os, sys, signal
+import os
+import sys
+import signal
 import time
-import logging
 
-from dnspod import DNSPod
-from logger import logger
+from vender.dnspod import DNSPod
+from util.logger import logger
 from util import get_real_ip
 
 
@@ -36,8 +37,8 @@ class Daemon(object):
 
     Usage: subclass the Daemon class and override the run() method
     """
-    def __init__(self, pidfile, stdin=os.devnull, stdout=os.devnull, \
-                 stderr=os.devnull, home_dir='.', umask=022, verbose=1):
+    def __init__(self, pidfile, stdin=os.devnull, stdout=os.devnull,
+                 stderr=os.devnull, home_dir='.', umask='022', verbose=1):
         super(Daemon, self).__init__()
         self.stdin = stdin
         self.stdout = stdout
@@ -59,18 +60,18 @@ class Daemon(object):
             if pid > 0:
                 # Exit from second parent
                 sys.exit(0)
-        except OSError, e:
-            logger.error('fork #2 faild: %d (%s)\n' %(e.errno, e.strerror))
+        except OSError:
+            self.log('error', 'form #2 faild')
             sys.exit(1)
 
-        if sys.platform != 'darwin':  # This block breaks on OS X
+        if sys.platform != 'darwin':    # This block breaks on OS X
             # Redirect standard file descriptions
             sys.stdout.flush()
             sys.stderr.flush()
-            si = file(self.stdin, 'r')
-            so = file(self.stdout, 'a+')
+            si = open(self.stdin, 'r')
+            so = open(self.stdout, 'a+')
             if self.stderr:
-                se = file(self.stderr, 'a+', 0)
+                se = open(self.stderr, 'a+', 0)
             else:
                 se = so
             os.dup2(si.fileno(), sys.stdin.fileno())
@@ -79,14 +80,15 @@ class Daemon(object):
 
         def sigtermhandler(signum, frame):
             self.daemon_alive = False
+
         signal.signal(signal.SIGTERM, sigtermhandler)
         signal.signal(signal.SIGINT, sigtermhandler)
 
-        self.log('success', "Started, server is running")
+        self.log('success', 'Started, server is running')
         # Write pidfile
-        atexit.register(self.delpid) # Make sure pid file removed if we quite
+        atexit.register(self.delpid)    # Make sure pid file removed if we quite
         pid = str(os.getpid())
-        file(self.pidfile, 'w+').write("%s\n" % pid)
+        open(self.pidfile, 'w+').write("%s\n" % pid)
 
     def delpid(self):
         os.remove(self.pidfile)
@@ -97,7 +99,7 @@ class Daemon(object):
             try:
                 log = logger.__getattribute__(status)
             except Exception:
-                logger.error('logger not have attribute %s' % status)
+                self.log.error('logger not have attribute {}'.format(status))
             log(s)
         return
 
@@ -107,7 +109,7 @@ class Daemon(object):
         """
         self.log('info', 'Start daemon...')
         try:
-            with file(self.pidfile, 'r') as pf:
+            with open(self.pidfile, 'r') as pf:
                 pid = int(pf.read().strip())
         except IOError:
             pid = None
@@ -115,7 +117,7 @@ class Daemon(object):
             pid = None
 
         if pid:
-            message = 'pidfile %s already exists. it is already running?' % self.pidfile
+            message = 'pidfile {} already exists. it is already running?'.format(self.pidfile)
             self.log('warning', message)
 
         # Start the daemon
@@ -128,7 +130,7 @@ class Daemon(object):
         """
         self.log('info', 'Stop daemon...')
         try:
-            with file(self.pidfile, 'r') as pf:
+            with open(self.pidfile, 'r') as pf:
                 pid = int(pf.read().strip())
         except IOError:
             pid = None
@@ -136,14 +138,14 @@ class Daemon(object):
             pid = None
 
         if not pid:
-            message = "pidfile %s does not exist. Not running?" % self.pidfile
+            message = "pidfile {} does not exist. Not running?".format(self.pidfile)
             self.log('warning', message)
 
             # Just to be sure. A ValueError might occur if the PID file is empty but does actually exist
             if os.path.exists(self.pidfile):
                 os.remove(self.pidfile)
 
-            return # Not an error in a restart
+            return    # Not an error in a restart
 
         # Try killing the daemon process
         try:
@@ -154,7 +156,7 @@ class Daemon(object):
                 i += 1
                 if i % 10 == 0:
                     os.kill(pid, signal.SIGHUP)
-        except OSError, e:
+        except OSError as e:
             err = str(e)
             if err.find('No such process') > 0:
                 if os.path.exists(self.pidfile):
@@ -177,7 +179,7 @@ class Daemon(object):
         Report daemon status
         """
         try:
-            pf = file(self.pidfile,'r')
+            pf = open(self.pidfile, 'r')
             pid = int(pf.read().strip())
             pf.close()
         except IOError:
@@ -198,7 +200,7 @@ class Daemon(object):
 
 
 class DDNS(Daemon):
-    TIME_INTERVAL = 60 * 60 * 1  # one hours
+    TIME_INTERVAL = 60 * 60 * 1    # one hours
 
     def __init__(self, *args, **kwargs):
         super(DDNS, self).__init__(*args, **kwargs)
