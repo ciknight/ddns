@@ -1,7 +1,9 @@
-# dnspod ddns for python
+## DDNS
 
-Usage DNSPod api complete DDNS
+DDNS Service for python
 
-# Update
 
-- 2016-03-04 参数更换为 login_token
+### Support
+
+- dnspod
+- aliyun
