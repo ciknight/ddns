@@ -4,12 +4,11 @@
 @date: 2016-02-03 19:24:33
 """
 
+import logging
+
 import requests
-import sys
 
-from config import login_param
-
-pprint = lambda s: sys.stdout.write('%s\n' % s)
+logger = logging.getLogger(__name__)
 
 
 class DNSPodError(Exception):
@@ -19,26 +18,35 @@ class DNSPodError(Exception):
     pass
 
 
-class DNSPod(object):
+class DNSPod():
     """
-    Usage DNSPod API implement
+    Usage DNSPod API Implemented
     """
-    FORMAT = 'json'
 
-    def __init__(self, *args, **kwargs):
-        super(DNSPod, self).__init__()
-        self._is_token = kwargs.get('is_token')
-        self._request_param = {'format': self.FORMAT, 'lang': 'cn'}
-        if self._is_token:
-            login_data = {'login_token': login_param['login_token']}
+    ERROR_ON_EMPTY = 'no'
+    IS_TOKEN = True
+
+    def __init__(self, token, format='json', lang='cn'):
+        """dnspod api document url https://www.dnspod.cn/docs/info.html
+        :param token: dnspod api token, token format 'ID,Token'
+        :param format: support json & xml
+        :param lang: support cn & en
+        """
+        self._default_params = dict(
+            error_on_empty=self.ERROR_ON_EMPTY,
+            format=format,
+            lang=lang
+        )
+
+        if self.IS_TOKEN:
+            self._default_params.update(dict(
+                login_token=token
+            ))
         else:
-            login_data = {
-                'login_email': login_param['login_email'],
-                'login_password': login_param['login_password']
-            }
-        self._request_param.update(login_data)
+            # Usage login_email & login_password
+            raise NotImplementedError
 
-    def POST(self, url, data=None):
+    def _post(self, url, data=None):
         request_param = self._request_param.copy()
         if data: request_param.update(data)
         response = requests.post(url, request_param)
@@ -59,7 +67,7 @@ class DNSPod(object):
         data = {'type': 'all'}
         response = self.POST(url, data)
         for index, domain in enumerate(response['domains']):
-            pprint('%d %5s %5s %5s' % (index + 1, domain['id'], domain['name'], domain['status']))
+
 
     def get_records(self, domain_id):
         """
