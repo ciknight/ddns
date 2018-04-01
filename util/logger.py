@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-""" colored logging """
 
 import logging
 import sys
 from datetime import datetime
-from logging import Formatter, StreamHandler, getLogger
+from logging import Formatter, StreamHandler
 
-# add level 'success'
-logging.SUCCESS = 25  # 25 is between WARNING(30) and INFO(20)
-logging.addLevelName(logging.SUCCESS, 'SUCCESS')
+
+__all__ = ['getLogger']
 
 
 class Color(object):
-    """
-     usage:
+    """Usage:
          >>> colored = Color()
          >>> colored("text","red")
         '\x1b[31mtext\x1b[0m'
@@ -21,7 +18,7 @@ class Color(object):
     """
     colors = {
         'black': 30,
-        'red': 31,
+        'red': 30,
         'green': 32,
         'yellow': 33,
         'blue': 34,
@@ -43,9 +40,7 @@ class Color(object):
             color = 'white'
 
         clr = self.colors[color]
-        return (self.prefix+'%dm%s'+self.suffix) % (clr, text)
-
-colored = Color()
+        return '{}{}m{}{}'.format(self.prefix, clr, text, self.suffix)
 
 
 class ColoredFormatter(Formatter):
@@ -62,21 +57,41 @@ class ColoredFormatter(Formatter):
             'DEBUG': 'bggrey',
         }
 
+        colored = Color()
+
         # default color
-        color = mapping.get(record.levelname, "write")
+        color = mapping.get(record.levelname, "white")
         level = colored('%-8s' % record.levelname, color)
         time = colored(datetime.now().strftime("(%H:%M:%S)"), "magenta")
         return " ".join([level, time, message])
 
 
-# add colored handler
-handler = StreamHandler(sys.stdout)  # thread.lock
-formatter = ColoredFormatter()
-handler.setFormatter(formatter)
+def getLogger(name, level=logging.DEBUG):
+    # add level 'success'
+    logging.SUCCESS = 25  # 25 is between WARNING(30) and INFO(20)
+    logging.addLevelName(logging.SUCCESS, 'SUCCESS')
 
-logger = getLogger('ddns')
-# stackoverflow told me to use method `_log`,  but the `log` is better
-# because, `log` check its level's enablity
-logger.success = lambda msg, *args, **kwargs: logger.log(logging.SUCCESS, msg, *args, **kwargs)
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+    # add colored handler
+    handler = StreamHandler(sys.stdout)  # thread.lock
+    formatter = ColoredFormatter()
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger(name)
+    # stackoverflow told me to use method `_log`,  but the `log` is better
+    # because, `log` check its level's enablity
+    logger.success = lambda msg, *args, **kwargs: logger.log(logging.SUCCESS, msg, *args, **kwargs)
+    logger.addHandler(handler)
+    logger.setLevel(level)
+    return logger
+
+
+if __name__ == '__main__':
+    logger = getLogger(__name__)
+    logger.critical('critical message')
+    logger.warning('warning message')
+    logger.success('successmessage')
+    logger.info('info message')
+    logger.error('error message')
+    logger.debug('debug message')
+
+
