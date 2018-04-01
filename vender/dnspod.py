@@ -28,85 +28,99 @@ class DNSPod():
 
     def __init__(self, token, format='json', lang='cn'):
         """dnspod api document url https://www.dnspod.cn/docs/info.html
-        :param token: dnspod api token, token format 'ID,Token'
-        :param format: support json & xml
-        :param lang: support cn & en
+        :token: dnspod api token, token format 'ID,Token'
+        :format: support json & xml
+        :lang: support cn & en
         """
-        self._default_params = dict(
-            error_on_empty=self.ERROR_ON_EMPTY,
-            format=format,
-            lang=lang
-        )
+        self._default_params = dict(error_on_empty=self.ERROR_ON_EMPTY, format=format, lang=lang)
 
         if self.IS_TOKEN:
-            self._default_params.update(dict(
-                login_token=token
-            ))
+            self._default_params.update(dict(login_token=token))
         else:
             # Usage login_email & login_password
             raise NotImplementedError
 
-    def _post(self, url, data=None):
-        request_param = self._request_param.copy()
-        if data: request_param.update(data)
+    def _fetch(self, url, data=None):
+        request_param = self._default_params.copy()
+        if data:
+            request_param.update(data)
         response = requests.post(url, request_param)
         if response.status_code != 200:
-            raise 'request error_code: %s' % response.status_code
+            logger.error('http request error, response error_code is {}'.format(response.status_code))
+            return None
 
-        response = response.json()
-        if response['status']['code'] != '1':
-            raise DNSPodError(response['status']['message'])
+        content = response.json()
+        if str(content.get('status', {}).get('code', 0)) != '1':
+            logger.error('dnspod api error, error message is {}'.format(content.get('status', {})))
+            return None
 
-        return response
+        return content
 
-    def get_domains(self):
-        """
-        get domain list
+    def _get_domain_id_by_name(self, name):
+        """Get domain list
+        :name: domain name
         """
         url = 'https://dnsapi.cn/Domain.List'
-        data = {'type': 'all'}
-        response = self.POST(url, data)
-        for index, domain in enumerate(response['domains']):
+        resp = self._fetch(url, {'type': 'all'})
+        assert resp
+        domain_id = None
+        for domain in resp['domains']:
+            logger.debug('{} {}'.format(domain.get('id'), domain.get('name')))
+            if domain.get('status') != 'enable':
+                continue
 
+            if domain.get('name') == name:
+                domain_id = domain.get('id')
 
-    def get_records(self, domain_id):
-        """
-        get record list for domain
+        return domain_id
+
+    def _get_record_id_by_name(self, domain_id, name):
+        """Get record list for domain
+        :domain_id: dnspod domain id
+        :name: record name
         """
         url = 'https://dnsapi.cn/Record.List'
-        data = {'domain_id': domain_id}
-        response = self.POST(url, data)
-        for index, record in enumerate(response['records']):
-            pprint(
-                '%d %5s %5s %5s %5s' %
-                (index + 1, record['id'], record['name'], record['value'], record['type'])
+        resp = self._fetch(url, {'domain_id': domain_id})
+        assert resp
+        record_id = None
+        for index, record in enumerate(resp['records']):
+            logger.debug(
+                '{}. {} {} {} {}'.format(
+                    index + 1, record.get('id'), record.get('name'), record.get('type'), record.get('value')
+                )
             )
 
-    def get_single_record(self, domain_id, record_id):
-        """
-        get a record
-        """
-        url = 'https://dnsapi.cn/Record.Info'
-        data = {'domain_id': domain_id, 'record_id': record_id}
-        response = self.POST(url, data)
-        return response['record']
+            if record.get('name') == name:
+                record_id = record.get('id')
 
-    def update_record(self, domain_id, record_id, sub_domain, ip, record_type='A'):
-        """
-        update record
-        update 5 pre hours is too much
+        return record_id
+
+    def update_record(self, domain_id, record_id, sub_domain, ip):
+        """Update domain record
         """
         url = 'https://dnsapi.cn/Record.Modify'
         data = {
             'domain_id': domain_id,
             'record_id': record_id,
-            'record_type': record_type,
+            'record_type': 'A',
             'value': ip,
             'sub_domain': sub_domain,
             'record_line': '默认'
         }
         try:
-            assert self.POST(url, data)
+            assert self._fetch(url, data)
         except Exception:
             return None
         return 1
+
+
+if __name__ == '__main__':
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    logger.addHandler(ch)
+    dnspod = DNSPod(token='51780,b2560cab1a46f378d8311ba4f92bf83f')
+    domain_id = dnspod._get_domain_id_by_name('whnzy.com')
+    record_id = dnspod._get_record_id_by_name(domain_id, 'www')
+    print(domain_id)
+    print(record_id)
