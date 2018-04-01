@@ -5,5 +5,5 @@ DDNS Service for python
 
 ### Support
 
-- dnspod
-- aliyun
+- DNSPod(Tencent Cloud)
+- Aliyun

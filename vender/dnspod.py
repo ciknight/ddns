@@ -95,7 +95,22 @@ class DNSPod():
 
         return record_id
 
-    def update_record(self, domain_id, record_id, sub_domain, ip):
+    def _add_record(self, domain_id, sub_domain, ip):
+        """Add record
+        """
+        url = 'https://dnsapi.cn/Record.Create'
+        data = {
+            'domain_id': domain_id,  # or domain name
+            'record_type': 'A',
+            'value': ip,
+            'sub_domain': sub_domain,
+            'record_line': '默认'
+
+        }
+        assert self._fetch(url, data)
+        return True
+
+    def _update_record(self, domain_id, record_id, sub_domain, ip):
         """Update domain record
         """
         url = 'https://dnsapi.cn/Record.Modify'
@@ -107,11 +122,24 @@ class DNSPod():
             'sub_domain': sub_domain,
             'record_line': '默认'
         }
+        assert self._fetch(url, data)
+        return True
+
+    def update(self, domain, sub_domain, ip):
         try:
-            assert self._fetch(url, data)
+            domain_id = self._get_domain_id_by_name(domain)
+            assert domain_id
+
+            record_id = self._get_record_id_by_name(domain_id, sub_domain)
+            if not record_id:
+                self._add_record(domain_id, sub_domain, ip)
+            else:
+                self._update_record(domain_id, record_id, sub_domain, ip)
+
+            return True
         except Exception:
-            return None
-        return 1
+            logger.info('update domain {} failed'.format(domain))
+            return False
 
 
 if __name__ == '__main__':
@@ -120,7 +148,4 @@ if __name__ == '__main__':
     ch.setLevel(logging.DEBUG)
     logger.addHandler(ch)
     dnspod = DNSPod(token='51780,b2560cab1a46f378d8311ba4f92bf83f')
-    domain_id = dnspod._get_domain_id_by_name('whnzy.com')
-    record_id = dnspod._get_record_id_by_name(domain_id, 'www')
-    print(domain_id)
-    print(record_id)
+    dnspod.update('whnzy.com', 'www', '127.0.0.1')
