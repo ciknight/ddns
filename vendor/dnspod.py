@@ -4,18 +4,11 @@
 @date: 2016-02-03 19:24:33
 """
 
-import logging
-
 import requests
 
-logger = logging.getLogger(__name__)
+from util.logger import getLogger
 
-
-class DNSPodError(Exception):
-    """
-    DNSPod request Exception
-    """
-    pass
+logger = getLogger(__name__)
 
 
 class DNSPod():
@@ -143,9 +136,5 @@ class DNSPod():
 
 
 if __name__ == '__main__':
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    logger.addHandler(ch)
     dnspod = DNSPod(token='51780,b2560cab1a46f378d8311ba4f92bf83f')
     dnspod.update('whnzy.com', 'www', '127.0.0.1')

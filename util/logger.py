@@ -93,5 +93,3 @@ if __name__ == '__main__':
     logger.info('info message')
     logger.error('error message')
     logger.debug('debug message')
-
-
