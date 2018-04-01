@@ -22,16 +22,16 @@
 
 import atexit
 import os
-import sys
 import signal
+import sys
 import time
 
-from vender.dnspod import DNSPod
-from util.logger import logger
-from util import get_real_ip
+from util.logger import getLogger
+
+logger = getLogger(__name__)
 
 
-class Daemon(object):
+class Daemon():
     """
     A generic daemon class.
 
@@ -39,7 +39,7 @@ class Daemon(object):
     """
     def __init__(self, pidfile, stdin=os.devnull, stdout=os.devnull,
                  stderr=os.devnull, home_dir='.', umask='022', verbose=1):
-        super(Daemon, self).__init__()
+        super().__init__()
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
@@ -83,12 +83,13 @@ class Daemon(object):
 
         signal.signal(signal.SIGTERM, sigtermhandler)
         signal.signal(signal.SIGINT, sigtermhandler)
-
         self.log('success', 'Started, server is running')
+
         # Write pidfile
         atexit.register(self.delpid)    # Make sure pid file removed if we quite
         pid = str(os.getpid())
-        open(self.pidfile, 'w+').write("%s\n" % pid)
+        with open(self.pidfile, 'w+') as f:
+            f.write('{}\{}'.format(pid))
 
     def delpid(self):
         os.remove(self.pidfile)
@@ -107,7 +108,7 @@ class Daemon(object):
         """
         running daemon
         """
-        self.log('info', 'Start daemon...')
+        self.log('info', 'Starting daemon...')
         try:
             with open(self.pidfile, 'r') as pf:
                 pid = int(pf.read().strip())
@@ -128,7 +129,7 @@ class Daemon(object):
         """
         Stop the daemon
         """
-        self.log('info', 'Stop daemon...')
+        self.log('info', 'Stoping daemon...')
         try:
             with open(self.pidfile, 'r') as pf:
                 pid = int(pf.read().strip())
@@ -179,9 +180,8 @@ class Daemon(object):
         Report daemon status
         """
         try:
-            pf = open(self.pidfile, 'r')
-            pid = int(pf.read().strip())
-            pf.close()
+            with open(self.pidfile, 'r') as f:
+                pid = int(f.read().strip())
         except IOError:
             pid = None
         except SystemExit:
@@ -197,37 +197,3 @@ class Daemon(object):
         You should override this method when you subclass Daemon. It will be called after the process has been
         daemonized by start() or restart().
         """
-
-
-class DDNS(Daemon):
-    TIME_INTERVAL = 60 * 60 * 1    # one hours
-
-    def __init__(self, *args, **kwargs):
-        super(DDNS, self).__init__(*args, **kwargs)
-        self.ddns = DNSPod(is_token=True)
-
-    @property
-    def dnspod(self):
-        return self.ddns
-
-    def run(self, domain_id, record_id):
-        while 1:
-            local_ip = get_real_ip()
-            if not id:
-                raise
-
-            record = self.ddns.get_single_record(domain_id, record_id)
-            record_ip = record['value']
-            if record_ip != local_ip:
-                self._run(record, domain_id, local_ip)
-            time.sleep(self.TIME_INTERVAL)
-
-    def _run(self, record, domain_id, local_ip):
-        i = 0
-        while 1:
-            if self.ddns.update_record(domain_id, record['id'], record['sub_domain'], local_ip):
-                break
-            i += 1
-            if i >= 5:
-                break
-        return 1
