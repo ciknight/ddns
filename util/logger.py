@@ -9,7 +9,7 @@ from logging import Formatter, StreamHandler
 __all__ = ['getLogger']
 
 
-class Color(object):
+class Color():
     """Usage:
          >>> colored = Color()
          >>> colored("text","red")

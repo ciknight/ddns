@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import logging
 import re
 
@@ -16,7 +15,7 @@ def get_real_ip():
         logging.error('http request error, response error_code is {}'.format(response.status_code))
         return None
 
-    IP = re.findall(r"(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])", response.content)
+    IP = re.findall(r"(?<![\.\d])(?:\d{1,3}\.){3}\d{1,3}(?![\.\d])", response.content.decode())
     return IP and IP[0] or None
 
 

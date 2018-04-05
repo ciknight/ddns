@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-@auther: ci_knight <ci_knight@msn.cn>
-@date: 2016-02-03 19:24:33
-"""
-
 import requests
 
 from util.logger import getLogger
+from vendor.base import Base
 
 logger = getLogger(__name__)
 
 
-class DNSPod():
+class DNSPod(Base):
     """
     Usage DNSPod API Implemented
     """
 
+    NAME = 'dnspod'
     ERROR_ON_EMPTY = 'no'
     IS_TOKEN = True
 
@@ -136,5 +133,5 @@ class DNSPod():
 
 
 if __name__ == '__main__':
-    dnspod = DNSPod(token='51780,b2560cab1a46f378d8311ba4f92bf83f')
+    dnspod = DNSPod(token='')
     dnspod.update('whnzy.com', 'www', '127.0.0.1')

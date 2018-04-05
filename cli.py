@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 @auther: ci_knight <ci_knight@msn.cn>
@@ -5,15 +6,16 @@
 """
 
 from docopt import docopt
-from server import server
+
+from server import Server
 
 
 def main():
     """Usage:
-cli.py getrecord [<domain_id>]
-cli.py run [<domain_id>] [<record_id>]
-cli.py stop
-cli.py (create|getdomain)
+cli.py start --vendor=<vendor> --domain=<domain> [--daemon] [--config=<config_file>]
+cli.py stop --vendor=<vendor>
+cli.py restart --vendor=<vendor>
+cli.py status --vendor=<vendor>
 cli.py [-h|-v]
 
 Options:
@@ -22,26 +24,26 @@ Options:
   --watch       watch source files for changes
 
 Commands:
-  run           deploy ddns in current directory
-  stop          stop ddns
-  getrecord     get record list in current domain
-  getdomain     get all domain
-  create        create a record"""
+  start         run ddns server
+  stop          stop ddns server"""
 
-    arguments = docopt(main.__doc__, version="dnspod ddns 1.0")
-    if arguments['run']:
-        domain_id = arguments['<domain_id>']
-        record_id = arguments['<record_id>']
-        server.start(domain_id, record_id)
+    arguments = docopt(main.__doc__, version="DDNS 2.0.0")
+    if arguments['start']:
+        vendor = arguments['--vendor']
+        domain = arguments['--domain']
+        if arguments['--daemon']:
+            Server(vendor).start(domain)
+        else:
+            Server(vendor).run(domain)
     elif arguments['stop']:
-        server.stop()
-    elif arguments['getdomain']:
-        server.dnspod.get_domains()
-    elif arguments['create']:
-        raise NotImplementedError
-    elif arguments['getrecord']:
-        domain_id = arguments['<domain_id>']
-        server.dnspod.get_records(domain_id)
+        vendor = arguments['--vendor']
+        Server(vendor).stop()
+    elif arguments['restart']:
+        vendor = arguments['--vendor']
+        Server(vendor).restart()
+    elif arguments['status']:
+        vendor = arguments['--vendor']
+        Server(vendor).status()
     else:
         exit(main.__doc__)
 
