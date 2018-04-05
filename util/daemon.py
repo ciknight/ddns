@@ -63,20 +63,19 @@ class Daemon():
         except OSError:
             self.log('error', 'form #2 faild')
             sys.exit(1)
-
-        if sys.platform != 'darwin':    # This block breaks on OS X
-            # Redirect standard file descriptions
-            sys.stdout.flush()
-            sys.stderr.flush()
-            si = open(self.stdin, 'r')
-            so = open(self.stdout, 'a+')
-            if self.stderr:
-                se = open(self.stderr, 'a+', 0)
-            else:
-                se = so
-            os.dup2(si.fileno(), sys.stdin.fileno())
-            os.dup2(so.fileno(), sys.stdout.fileno())
-            os.dup2(se.fileno(), sys.stderr.fileno())
+        # if sys.platform != 'darwin':    # This block breaks on OS X
+        #     # Redirect standard file descriptions
+        #     sys.stdout.flush()
+        #     sys.stderr.flush()
+        #     si = open(self.stdin, 'r')
+        #     so = open(self.stdout, 'a+')
+        #     if self.stderr:
+        #         se = open(self.stderr, 'a+')
+        #     else:
+        #         se = so
+        #     os.dup2(si.fileno(), sys.stdin.fileno())
+        #     os.dup2(so.fileno(), sys.stdout.fileno())
+        #     os.dup2(se.fileno(), sys.stderr.fileno())
 
         def sigtermhandler(signum, frame):
             self.daemon_alive = False
@@ -89,7 +88,7 @@ class Daemon():
         atexit.register(self.delpid)    # Make sure pid file removed if we quite
         pid = str(os.getpid())
         with open(self.pidfile, 'w+') as f:
-            f.write('{}\{}'.format(pid))
+            f.write('{}'.format(pid))
 
     def delpid(self):
         os.remove(self.pidfile)
@@ -116,10 +115,10 @@ class Daemon():
             pid = None
         except ValueError:
             pid = None
-
         if pid:
             message = 'pidfile {} already exists. it is already running?'.format(self.pidfile)
             self.log('warning', message)
+            sys.exit(0)
 
         # Start the daemon
         self.daemonize()
@@ -192,8 +191,9 @@ class Daemon():
         else:
             self.log('info', 'Stopped')
 
-    def run(self):
+    def run(self, *args, **kwargs):
         """
         You should override this method when you subclass Daemon. It will be called after the process has been
         daemonized by start() or restart().
         """
+        del args, kwargs

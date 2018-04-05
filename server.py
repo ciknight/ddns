@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
+from vendor import DDNS
 
-from util.daemon import DDNS
-
-__all__ = ['server']
+__all__ = ['Server']
 
 
-class Server(object):
-    PIDFILE = '/tmp/ddns.pid'
+class Server():
+    PIDFILE_TEMPLATE = '/tmp/ddns_{vendor}.pid'
 
-    def __init__(self, *args, **kwargs):
-        super(Server, self).__init__(*args, **kwargs)
-        self.ddns = DDNS(self.PIDFILE)
+    def __init__(self, vendor):
+        super().__init__()
+        pidfile = self.PIDFILE_TEMPLATE.format(vendor=vendor)
+        self.ddns = DDNS(vendor, pidfile)
 
     @property
-    def dnspod(self):
-        return self.ddns.dnspod
+    def server_name(self):
+        return self.ddns.server.NAME
 
-    def start(self, domain_id, record_id):
-        self.ddns.start(domain_id, record_id)
+    def run(self, domain):
+        self.ddns.run(domain)
+
+    def start(self, domain):
+        self.ddns.start(domain)
 
     def stop(self):
         self.ddns.stop()
@@ -27,6 +30,3 @@ class Server(object):
 
     def status(self):
         self.ddns.status()
-
-
-server = Server()
